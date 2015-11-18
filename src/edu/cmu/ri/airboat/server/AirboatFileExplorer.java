@@ -150,7 +150,7 @@ public class AirboatFileExplorer extends Dialog implements android.view.View.OnC
                     file.add(subTemp);
 //System.out.println("files in dir:"+subTemp);
                 }
-                //过滤知道类型的文件
+                //Filtering the known type of data
                 if(f.isFile() && fileType != null){
                     for(int i = 0;i< fileType.length;i++){
                         int typeStrLen = fileType[i].length();

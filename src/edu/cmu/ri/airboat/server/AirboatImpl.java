@@ -2,6 +2,7 @@ package edu.cmu.ri.airboat.server;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -445,6 +446,74 @@ public class AirboatImpl extends AbstractVehicleServer {
                             // TODO: Remove this hack to store winch depth
                             winch_depth_ = reading.data[0];
                         }
+						else if (type.equalsIgnoreCase("pwr")){ //Power Consumption Information
+							String[] data = value.getString("data").trim().split(" ");
+
+							double voltage = Double.parseDouble(data[0]);
+							double motor0Current = Double.parseDouble(data[1]);
+							double motor1Current = Double.parseDouble(data[2]);
+
+							SensorData reading = new SensorData();
+							reading.channel = sensor;
+							reading.type = SensorType.BATTERY;
+							reading.data = new double[] {voltage, motor0Current, motor1Current};
+
+							sendSensor(sensor, reading);
+							Log.i(logTag, "Power: V:"+voltage +" , C0:" +
+									motor0Current+" , C1:" + motor1Current);
+						}
+						else if (type.equalsIgnoreCase("ser"))
+						{
+							String[] data = value.getString("data").trim().split(" ");
+
+							double voltage = Double.parseDouble(data[0]);
+							double motor0Current = Double.parseDouble(data[1]);
+							double motor1Current = Double.parseDouble(data[2]);
+							//Rotational speed set as revolutions per
+							// half second to reduce overhead
+							int rpm0 = Integer.parseInt(data[3])*120;
+							int rpm1 = Integer.parseInt(data[4])*120;
+							double lvelocity = Double.parseDouble(data[5]);
+							double rvelocity = Double.parseDouble(data[6]);
+							int state = Integer.parseInt(data[5]);
+							//Send energy usage information
+							SensorData reading = new SensorData();
+							reading.channel = sensor;
+							reading.type = SensorType.BATTERY;
+							reading.data = new double[] {voltage, motor0Current, motor1Current};
+
+							sendSensor(sensor, reading);
+							Log.i(logTag, "External: V: " + voltage + " , C0: " +
+									motor0Current + " , C1: " + motor1Current);
+
+							//Send motor speeds
+							reading = new SensorData();
+							reading.channel = sensor;
+							reading.type = SensorType.ANALOG;
+							reading.data = new double[] {rpm0, rpm1};
+
+							sendSensor(sensor, reading);
+
+							Log.i(logTag, "External: RPM0: " + rpm0 +
+										",  RPM1: " + rpm1 +", Ctrl: " + state
+										+", lv: " + lvelocity +", rv: "
+										+ rvelocity );
+						}
+						else if (type.equalsIgnoreCase("ct")) //Controlled time
+						{
+							String[] data = value.getString("data").trim().split(" ");
+							int testDuration = Integer.parseInt(data[0]);
+
+							SensorData reading = new SensorData();
+							reading.channel = sensor;
+							reading.type = SensorType.ANALOG;
+							reading.data = new double[] {testDuration};
+
+							sendSensor(sensor, reading);
+
+							Log.i(logTag, "Controlled Velocity Test Duration: " + testDuration);
+
+						}
                     }
 				} else {
 					Log.w(logTag, "Received unknown param '" + cmd + "'.");
